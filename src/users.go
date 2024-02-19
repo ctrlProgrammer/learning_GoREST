@@ -32,8 +32,11 @@ func AddUser(context *gin.Context) {
 	}
 
 	testUsers = append(testUsers, newUser)
+
+	context.IndentedJSON(http.StatusCreated, newUser)
 }
 
 func DefineRouter(router gin.IRouter) {
 	router.GET("/users", GetUsers)
+	router.POST("/users", AddUser)
 }
