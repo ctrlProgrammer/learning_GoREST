@@ -1,6 +1,8 @@
 package learning_data_users
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -20,6 +22,32 @@ var testUsers = []User{
 	{ID: "4", Username: "TestUser_4", Address: "0x4", Created: 1708346339},
 }
 
+func GetUserByID(id string) (*User, error) {
+	for i, t := range testUsers {
+		if t.ID == id {
+			return &testUsers[i], nil
+		}
+	}
+
+	return nil, errors.New("not found")
+}
+
+func RemoveUserByID(id string) (*User, error) {
+	for i, t := range testUsers {
+		if t.ID == id {
+			removedUser := testUsers[i]
+			fmt.Print(testUsers[:i])
+			fmt.Print(testUsers[i+1:])
+			testUsers = append(testUsers[:i], testUsers[i+1:]...)
+			return &removedUser, nil
+		}
+	}
+
+	return nil, errors.New("not found")
+}
+
+// SECTION API REST Methods
+
 func GetUsers(context *gin.Context) {
 	context.IndentedJSON(http.StatusOK, testUsers)
 }
@@ -28,6 +56,7 @@ func AddUser(context *gin.Context) {
 	var newUser User
 
 	if err := context.BindJSON(&newUser); err != nil {
+		context.IndentedJSON(http.StatusNotFound, gin.H{"error": true})
 		return
 	}
 
@@ -36,7 +65,33 @@ func AddUser(context *gin.Context) {
 	context.IndentedJSON(http.StatusCreated, newUser)
 }
 
+func GetUser(context *gin.Context) {
+	id := context.Param("id")
+	user, err := GetUserByID(id)
+
+	if err != nil {
+		context.IndentedJSON(http.StatusNotFound, gin.H{"error": true})
+		return
+	}
+
+	context.IndentedJSON(http.StatusOK, user)
+}
+
+func RemoveUser(context *gin.Context) {
+	id := context.Param("id")
+	user, err := RemoveUserByID(id)
+
+	if err != nil {
+		context.IndentedJSON(http.StatusNotFound, gin.H{"error": true})
+		return
+	}
+
+	context.IndentedJSON(http.StatusOK, user)
+}
+
 func DefineRouter(router gin.IRouter) {
 	router.GET("/users", GetUsers)
+	router.GET("/users/:id", GetUser)
 	router.POST("/users", AddUser)
+	router.DELETE("/users/:id", RemoveUser)
 }
