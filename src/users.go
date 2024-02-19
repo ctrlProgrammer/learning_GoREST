@@ -2,7 +2,6 @@ package learning_data_users
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -36,8 +35,6 @@ func RemoveUserByID(id string) (*User, error) {
 	for i, t := range testUsers {
 		if t.ID == id {
 			removedUser := testUsers[i]
-			fmt.Print(testUsers[:i])
-			fmt.Print(testUsers[i+1:])
 			testUsers = append(testUsers[:i], testUsers[i+1:]...)
 			return &removedUser, nil
 		}
